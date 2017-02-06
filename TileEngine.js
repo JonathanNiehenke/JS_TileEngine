@@ -23,7 +23,8 @@ function IndexObj(x, y) {
 function Engine(Tile, playerTile) {
     this.Tile = Tile;
     this.playerTile = playerTile;
-    this.Levels = undefined;  // Will hold function generator of levels;
+    this.Levels = undefined;  // Will hold function generator of levels
+    this.currentLevel = undefined;  // Will hold copy of current level
     this.Environment = {};
     this.establishEnvironment = function(Environment, Structure) {
         let structureEl = document.getElementById("Structure");
@@ -44,8 +45,7 @@ function Engine(Tile, playerTile) {
             structureEl.appendChild(rowDiv);
         }
     };
-    this.nextEnvironment = function() {
-        let Level = this.Levels.next().value;
+    this.buildEnvironment = function(Level) {
         let Environment = {
             "cell": {},
             "cellLocations": {},
@@ -58,11 +58,18 @@ function Engine(Tile, playerTile) {
             startIndex = Environment.cellLocations[this.playerTile][0];
             Environment.player = startIndex;
             Environment.cell[startIndex.toString()] = " ";
-            // endLocations = Environment.cellLocations["E"];
-            // endIndex = endLocations ? endLocations[0] : startIndex;
-            // Environment.end = endIndex;
+            endLocations = Environment.cellLocations["E"];
+            endIndex = endLocations ? endLocations[0] : startIndex;
+            Environment.end = endIndex;
         }
         return Environment;
+    };
+    this.nextEnvironment = function() {
+        this.currentLevel = this.Levels.next().value;
+        return this.buildEnvironment(this.currentLevel);
+    };
+    this.resetEnvironment = function() {
+        return this.buildEnvironment(this.currentLevel);
     };
     this.replaceImage = function(Index, tileValue) {
         let rowDiv = document.getElementById(`row${Index.x}`);
