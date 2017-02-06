@@ -87,3 +87,4 @@ function Engine(Tile, playerTile) {
         this.Environment.player = toIndex;
     };
 }
+
