@@ -8,9 +8,9 @@ function pushKey(obj, key, value) {
     }
 }
 
-function Engine(Tile, Inventory) {
+function Engine(Tile, playerTile) {
     this.Tile = Tile;
-    this.Inventory = Inventory;
+    this.playerTile = playerTile;
     this.Levels = undefined;  // Will hold function generator of levels;
     this.Environment = {};
     this.keyInput = {
@@ -28,24 +28,22 @@ function Engine(Tile, Inventory) {
         "74": [0, -1], // J key (Left)
         "76": [0, 1],  // L key (Right)
         "handle": function(keyEvent) {
-            let Movement = this.keyInput[keyEvent.keyCode]; if (Movement) {
+            let Movement = this.keyInput[keyEvent.keyCode];
+            if (Movement) {
                 let moveTo = [
                     this.Environment.player[0] + Movement[0],
                     this.Environment.player[1] + Movement[1]];
                 let cellTo = this.Environment.cell[moveTo];
                 let cellAction = this.Tile[cellTo].action;
                 if (moveTo in this.Environment.cell && cellAction) {
-                    cellAction.call(this, moveTo, cellTo);
+                    cellAction.call(this, moveTo, cellTo, Movement);
                 }
             }
         },
     };
-    this.establishEnvironment = function(Environment, Level) {
-        let levelTitle = document.getElementById("levelTitle");
+    this.establishEnvironment = function(Environment, Structure) {
         let structureEl = document.getElementById("Structure");
         structureEl.innerHTML = "";  // Removing all decendants.
-        let [Messages, Structure] = Level;
-        levelTitle.innerHTML = Messages[0];
         let colLength = Structure.length;
         for (let x = 0; x < colLength; ++x) {
             let rowDiv = document.createElement("div");
@@ -69,21 +67,16 @@ function Engine(Tile, Inventory) {
             "cellLocations": {},
             "onCell": " ",
             "player": [0, 0],
-            "end": [0, 0],
-            "requirements": 0,
+            // "end": [0, 0],
         };
         if (Level) {
             this.establishEnvironment(Environment, Level);
-            startIndex = Environment.cellLocations["$"][0];
+            startIndex = Environment.cellLocations[this.playerTile][0];
             Environment.cell[startIndex] = " ";
             Environment.player = startIndex;
-            Environment.requirements = (
-                (Environment.cellLocations["e"] || []).length +
-                (Environment.cellLocations["p"] || []).length +
-                (Environment.cellLocations["P"] || []).length)
-            endLocations = Environment.cellLocations["E"];
-            endIndex = endLocations ? endLocations[0] : startIndex;
-            Environment.end = endIndex;
+            // endLocations = Environment.cellLocations["E"];
+            // endIndex = endLocations ? endLocations[0] : startIndex;
+            // Environment.end = endIndex;
         }
         return Environment;
     };
@@ -102,10 +95,16 @@ function Engine(Tile, Inventory) {
             this.replaceCell(cellIndex, newValue);
         }
     };
-    this.movePlayer = function(moveTo) {
+    this.movePlayer = function(moveTo, cellTo, Movement) {
         let Environment = this.Environment;
         this.replaceImage(Environment.player, Environment.onCell);
-        this.replaceImage(moveTo, "$");
+        let directionImg  = {
+            "-1,0": "^",
+            "1,0": "v",
+            "0,-1": "<",
+            "0,1": ">",
+        }[Movement];
+        this.replaceImage(moveTo, directionImg);
         Environment.onCell = Environment.cell[moveTo];
         Environment.player = moveTo;
     };
