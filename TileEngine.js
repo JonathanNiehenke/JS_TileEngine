@@ -13,34 +13,6 @@ function Engine(Tile, playerTile) {
     this.playerTile = playerTile;
     this.Levels = undefined;  // Will hold function generator of levels;
     this.Environment = {};
-    this.keyInput = {
-        // 27: "escape",
-        "38": [-1, 0], // Up Arrow
-        "40": [1, 0],  // Down Arrow
-        "37": [0, -1], // Left Arrow
-        "39": [0, 1],  // Right Arrow
-        "87": [-1, 0], // W Key (Up)
-        "83": [1, 0],  // S Key (Down)
-        "65": [0, -1], // A Key (Left)
-        "68": [0, 1],  // D Key (Right)
-        "73": [-1, 0], // I key (Up)
-        "75": [1, 0],  // K Key (Down)
-        "74": [0, -1], // J key (Left)
-        "76": [0, 1],  // L key (Right)
-        "handle": function(keyEvent) {
-            let Movement = this.keyInput[keyEvent.keyCode];
-            if (Movement) {
-                let moveTo = [
-                    this.Environment.player[0] + Movement[0],
-                    this.Environment.player[1] + Movement[1]];
-                let cellTo = this.Environment.cell[moveTo];
-                let cellAction = this.Tile[cellTo].action;
-                if (moveTo in this.Environment.cell && cellAction) {
-                    cellAction.call(this, moveTo, cellTo, Movement);
-                }
-            }
-        },
-    };
     this.establishEnvironment = function(Environment, Structure) {
         let structureEl = document.getElementById("Structure");
         structureEl.innerHTML = "";  // Removing all decendants.
@@ -66,6 +38,7 @@ function Engine(Tile, playerTile) {
             "cell": {},
             "cellLocations": {},
             "onCell": " ",
+            "facing": "v",
             "player": [0, 0],
             // "end": [0, 0],
         };
@@ -82,9 +55,9 @@ function Engine(Tile, playerTile) {
     };
     this.replaceImage = function(Index, cellValue) {
         let rowDiv = document.getElementById(`row${Index[0]}`);
-        let newImgEl = this.Tile[cellValue].image;
+        let newImgEl = this.Tile[cellValue].image.cloneNode();
         let currentImgEl = rowDiv.getElementsByTagName("img")[Index[1]];
-        rowDiv.replaceChild(newImgEl.cloneNode(), currentImgEl);
+        rowDiv.replaceChild(newImgEl, currentImgEl);
     };
     this.replaceCell = function(cellIndex, cellValue) {
         this.Environment.cell[cellIndex] = cellValue;
@@ -107,5 +80,6 @@ function Engine(Tile, playerTile) {
         this.replaceImage(moveTo, directionImg);
         Environment.onCell = Environment.cell[moveTo];
         Environment.player = moveTo;
+        Environment.facing = directionImg;
     };
 }
