@@ -8,6 +8,18 @@ function pushKey(obj, key, value) {
     }
 }
 
+function IndexObj(x, y) {
+    this.x = x;
+    this.y = y;
+    this.add = function(other) {
+        return new IndexObj(this.x + other.x, this.y + other.y);
+    };
+    this.toString = function() {
+        return `${this.x},${this.y}`;
+    };
+    return this;
+}
+
 function Engine(Tile, playerTile) {
     this.Tile = Tile;
     this.playerTile = playerTile;
@@ -18,15 +30,15 @@ function Engine(Tile, playerTile) {
         structureEl.innerHTML = "";  // Removing all decendants.
         let colLength = Structure.length;
         for (let x = 0; x < colLength; ++x) {
-            let rowDiv = document.createElement("div");
             let Row = Structure[x];
+            let rowDiv = document.createElement("div");
             let rowLength = Row.length;
             for (let y = 0; y < rowLength; ++y) {
-                let Cell = {"index": [x, y], "value": Row[y]};
-                Environment.cell[Cell.index] = Cell.value;
-                pushKey(Environment.cellLocations, Cell.value, Cell.index);
-                let newTile = this.Tile[Cell.value].image.cloneNode();
-                rowDiv.appendChild(newTile);
+                let index = new IndexObj(x, y);
+                let value = Row[y];
+                Environment.cell[index.toString()] = value;
+                pushKey(Environment.cellLocations, value, index);
+                rowDiv.appendChild(this.Tile[value].image.cloneNode());
             }
             rowDiv.id = `row${x}`;
             structureEl.appendChild(rowDiv);
@@ -37,26 +49,25 @@ function Engine(Tile, playerTile) {
         let Environment = {
             "cell": {},
             "cellLocations": {},
-            "onCell": " ",
-            "facing": "v",
-            "player": [0, 0],
-            // "end": [0, 0],
+            "player": new IndexObj(0, 0),
+            "end": new IndexObj(0, 0),
         };
+        // Prevents error caused by undefined level.
         if (Level) {
             this.establishEnvironment(Environment, Level);
             startIndex = Environment.cellLocations[this.playerTile][0];
-            Environment.cell[startIndex] = " ";
             Environment.player = startIndex;
+            Environment.cell[startIndex.toString()] = " ";
             // endLocations = Environment.cellLocations["E"];
             // endIndex = endLocations ? endLocations[0] : startIndex;
             // Environment.end = endIndex;
         }
         return Environment;
     };
-    this.replaceImage = function(Index, cellValue) {
-        let rowDiv = document.getElementById(`row${Index[0]}`);
-        let newImgEl = this.Tile[cellValue].image.cloneNode();
-        let currentImgEl = rowDiv.getElementsByTagName("img")[Index[1]];
+    this.replaceImage = function(Index, tileValue) {
+        let rowDiv = document.getElementById(`row${Index.x}`);
+        let newImgEl = this.Tile[tileValue].image.cloneNode();
+        let currentImgEl = rowDiv.getElementsByTagName("img")[Index.y];
         rowDiv.replaceChild(newImgEl, currentImgEl);
     };
     this.replaceCell = function(cellIndex, cellValue) {
@@ -68,18 +79,10 @@ function Engine(Tile, playerTile) {
             this.replaceCell(cellIndex, newValue);
         }
     };
-    this.movePlayer = function(moveTo, cellTo, Movement) {
-        let Environment = this.Environment;
-        this.replaceImage(Environment.player, Environment.onCell);
-        let directionImg  = {
-            "-1,0": "^",
-            "1,0": "v",
-            "0,-1": "<",
-            "0,1": ">",
-        }[Movement];
-        this.replaceImage(moveTo, directionImg);
-        Environment.onCell = Environment.cell[moveTo];
-        Environment.player = moveTo;
-        Environment.facing = directionImg;
+    this.placePlayer = function(playerIndex, imgValue) {
+        this.replaceImage(this.Environment.player,
+                          this.Environment.cell[playerIndex.toString()]);
+        this.replaceImage(playerIndex, imgValue);
+        this.Environment.player = playerIndex;
     };
 }
