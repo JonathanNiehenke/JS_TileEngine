@@ -79,10 +79,11 @@ function Engine(Tile, playerTile) {
             this.replaceCell(cellIndex, newValue);
         }
     };
-    this.placePlayer = function(playerIndex, imgValue) {
-        this.replaceImage(this.Environment.player,
-                          this.Environment.cell[playerIndex.toString()]);
-        this.replaceImage(playerIndex, imgValue);
-        this.Environment.player = playerIndex;
+    this.placePlayer = function(toIndex, imgValue) {
+        let fromIndex = this.Environment.player;
+        this.replaceImage(
+            fromIndex, this.Environment.cell[fromIndex.toString()]);
+        this.replaceImage(toIndex, imgValue);
+        this.Environment.player = toIndex;
     };
 }
